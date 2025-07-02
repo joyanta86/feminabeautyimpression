@@ -199,20 +199,22 @@ class BeautySalonAPITest(unittest.TestCase):
         print("✅ Unauthorized image upload correctly rejected")
 
 if __name__ == "__main__":
-    # Add more verbose output for debugging
-    import sys
-    if len(sys.argv) > 1 and sys.argv[1] == '--debug':
-        # Create a single test instance to maintain state
-        test_instance = BeautySalonAPITest()
-        test_instance.setUp()
-        
-        # Run login test first to get token
-        test_instance.test_02_admin_login_success()
-        
-        # Then run upload test
-        if hasattr(test_instance, 'token') and test_instance.token:
-            test_instance.test_05_upload_image()
-        else:
-            print("❌ Failed to obtain token from login test")
-    else:
-        unittest.main(argv=['first-arg-is-ignored'], exit=False)
+    # Create a single test instance to maintain state
+    test_instance = BeautySalonAPITest()
+    test_instance.setUp()
+    
+    # Run tests in sequence to maintain state
+    test_instance.test_01_health_check()
+    test_instance.test_02_admin_login_success()
+    test_instance.test_03_admin_login_failure()
+    test_instance.test_04_get_gallery()
+    
+    # Only run these if we have a token
+    if hasattr(test_instance, 'token') and test_instance.token:
+        test_instance.test_05_upload_image()
+        # Only run delete if we have an image ID
+        if hasattr(test_instance, 'image_id'):
+            test_instance.test_06_delete_image()
+    
+    test_instance.test_07_chat_functionality()
+    test_instance.test_08_unauthorized_image_upload()
