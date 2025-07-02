@@ -188,4 +188,12 @@ class BeautySalonAPITest(unittest.TestCase):
         print("✅ Unauthorized image upload correctly rejected")
 
 if __name__ == "__main__":
-    unittest.main(argv=['first-arg-is-ignored'], exit=False)
+    # Add more verbose output for debugging
+    import sys
+    if len(sys.argv) > 1 and sys.argv[1] == '--debug':
+        # Run specific test for debugging
+        suite = unittest.TestSuite()
+        suite.addTest(BeautySalonAPITest('test_05_upload_image'))
+        unittest.TextTestRunner(verbosity=2).run(suite)
+    else:
+        unittest.main(argv=['first-arg-is-ignored'], exit=False)
