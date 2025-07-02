@@ -12,6 +12,7 @@ import base64
 from passlib.context import CryptContext
 import jwt
 from datetime import timedelta
+import openai
 
 # Initialize FastAPI app
 app = FastAPI(title="Femina Beauty Impression API")
