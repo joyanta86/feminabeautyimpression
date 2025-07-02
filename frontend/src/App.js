@@ -427,7 +427,7 @@ const App = () => {
                 href="tel:+447368594210"
                 className="w-full bg-pink-500 text-white px-6 py-3 rounded-lg hover:bg-pink-600 transition-colors inline-block text-center"
               >
-                Call Now: +44 7368 594210
+                📞 Call Now: +44 7368 594210
               </a>
             </div>
           </div>
