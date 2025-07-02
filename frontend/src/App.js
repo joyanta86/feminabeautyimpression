@@ -250,10 +250,10 @@ const App = () => {
                   View Services
                 </a>
                 <a
-                  href="#contact"
+                  href="tel:+447368594210"
                   className="bg-white text-pink-500 border-2 border-pink-500 px-8 py-3 rounded-lg hover:bg-pink-50 transition-colors text-center"
                 >
-                  Book Appointment
+                  📞 Book Appointment
                 </a>
               </div>
             </div>
