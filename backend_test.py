@@ -202,8 +202,11 @@ if __name__ == "__main__":
     # Add more verbose output for debugging
     import sys
     if len(sys.argv) > 1 and sys.argv[1] == '--debug':
-        # Run specific test for debugging
+        # Run specific tests for debugging
         suite = unittest.TestSuite()
+        test_case = BeautySalonAPITest()
+        test_case.setUp()
+        suite.addTest(BeautySalonAPITest('test_02_admin_login_success'))
         suite.addTest(BeautySalonAPITest('test_05_upload_image'))
         unittest.TextTestRunner(verbosity=2).run(suite)
     else:
