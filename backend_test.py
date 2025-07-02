@@ -72,6 +72,7 @@ class BeautySalonAPITest(unittest.TestCase):
         
         # Skip if no token
         if not self.token:
+            print("❌ No authentication token available")
             self.skipTest("No authentication token available")
             
         # Create a test image
@@ -93,23 +94,33 @@ class BeautySalonAPITest(unittest.TestCase):
             'Authorization': f'Bearer {self.token}'
         }
         
+        print(f"Token: {self.token[:10]}...")
+        print(f"URL: {self.base_url}/api/gallery")
+        
         # Upload the image
-        response = requests.post(
-            f"{self.base_url}/api/gallery",
-            files=files,
-            data=data,
-            headers=headers
-        )
-        
-        self.assertEqual(response.status_code, 200)
-        result = response.json()
-        self.assertIn("message", result)
-        self.assertIn("id", result)
-        self.assertEqual(result["message"], "Image uploaded successfully")
-        
-        # Save image ID for deletion test
-        self.image_id = result["id"]
-        print(f"✅ Image upload successful. Image ID: {self.image_id}")
+        try:
+            response = requests.post(
+                f"{self.base_url}/api/gallery",
+                files=files,
+                data=data,
+                headers=headers
+            )
+            
+            print(f"Response status: {response.status_code}")
+            print(f"Response content: {response.text}")
+            
+            self.assertEqual(response.status_code, 200)
+            result = response.json()
+            self.assertIn("message", result)
+            self.assertIn("id", result)
+            self.assertEqual(result["message"], "Image uploaded successfully")
+            
+            # Save image ID for deletion test
+            self.image_id = result["id"]
+            print(f"✅ Image upload successful. Image ID: {self.image_id}")
+        except Exception as e:
+            print(f"❌ Error during image upload: {str(e)}")
+            raise
         
     def test_06_delete_image(self):
         """Test image deletion"""
