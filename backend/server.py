@@ -1,75 +1,152 @@
-from fastapi import FastAPI, APIRouter
-from dotenv import load_dotenv
-from starlette.middleware.cors import CORSMiddleware
-from motor.motor_asyncio import AsyncIOMotorClient
+from fastapi import FastAPI, HTTPException, Depends, File, UploadFile, Form
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from pydantic import BaseModel
+from typing import List, Optional
 import os
-import logging
-from pathlib import Path
-from pydantic import BaseModel, Field
-from typing import List
+from motor.motor_asyncio import AsyncIOMotorClient
 import uuid
 from datetime import datetime
+import json
+import base64
+from passlib.context import CryptContext
+import jwt
+from datetime import timedelta
 
+# Initialize FastAPI app
+app = FastAPI(title="Femina Beauty Impression API")
 
-ROOT_DIR = Path(__file__).parent
-load_dotenv(ROOT_DIR / '.env')
-
-# MongoDB connection
-mongo_url = os.environ['MONGO_URL']
-client = AsyncIOMotorClient(mongo_url)
-db = client[os.environ['DB_NAME']]
-
-# Create the main app without a prefix
-app = FastAPI()
-
-# Create a router with the /api prefix
-api_router = APIRouter(prefix="/api")
-
-
-# Define Models
-class StatusCheck(BaseModel):
-    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
-    client_name: str
-    timestamp: datetime = Field(default_factory=datetime.utcnow)
-
-class StatusCheckCreate(BaseModel):
-    client_name: str
-
-# Add your routes to the router instead of directly to app
-@api_router.get("/")
-async def root():
-    return {"message": "Hello World"}
-
-@api_router.post("/status", response_model=StatusCheck)
-async def create_status_check(input: StatusCheckCreate):
-    status_dict = input.dict()
-    status_obj = StatusCheck(**status_dict)
-    _ = await db.status_checks.insert_one(status_obj.dict())
-    return status_obj
-
-@api_router.get("/status", response_model=List[StatusCheck])
-async def get_status_checks():
-    status_checks = await db.status_checks.find().to_list(1000)
-    return [StatusCheck(**status_check) for status_check in status_checks]
-
-# Include the router in the main app
-app.include_router(api_router)
-
+# CORS middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_credentials=True,
     allow_origins=["*"],
+    allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# Configure logging
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-)
-logger = logging.getLogger(__name__)
+# Security
+security = HTTPBearer()
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+SECRET_KEY = "your-secret-key-here"
+ALGORITHM = "HS256"
 
-@app.on_event("shutdown")
-async def shutdown_db_client():
-    client.close()
+# MongoDB connection
+MONGO_URL = os.environ.get('MONGO_URL', 'mongodb://localhost:27017')
+client = AsyncIOMotorClient(MONGO_URL)
+db = client.beauty_salon
+
+# Models
+class GalleryImage(BaseModel):
+    id: str
+    filename: str
+    image_data: str
+    description: Optional[str] = None
+    uploaded_at: datetime
+
+class AdminLogin(BaseModel):
+    username: str
+    password: str
+
+class ChatMessage(BaseModel):
+    message: str
+    session_id: Optional[str] = None
+
+# Default admin credentials (change these later)
+DEFAULT_ADMIN = {
+    "username": "admin",
+    "password": "beauty123"
+}
+
+# Helper functions
+def create_access_token(data: dict):
+    to_encode = data.copy()
+    expire = datetime.utcnow() + timedelta(hours=24)
+    to_encode.update({"exp": expire})
+    encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+    return encoded_jwt
+
+def verify_token(credentials: HTTPAuthorizationCredentials = Depends(security)):
+    try:
+        payload = jwt.decode(credentials.credentials, SECRET_KEY, algorithms=[ALGORITHM])
+        username: str = payload.get("sub")
+        if username is None:
+            raise HTTPException(status_code=401, detail="Invalid token")
+        return username
+    except jwt.PyJWTError:
+        raise HTTPException(status_code=401, detail="Invalid token")
+
+# Routes
+@app.get("/api/health")
+async def health_check():
+    return {"status": "healthy"}
+
+@app.post("/api/admin/login")
+async def admin_login(login_data: AdminLogin):
+    if login_data.username == DEFAULT_ADMIN["username"] and login_data.password == DEFAULT_ADMIN["password"]:
+        access_token = create_access_token(data={"sub": login_data.username})
+        return {"access_token": access_token, "token_type": "bearer"}
+    raise HTTPException(status_code=401, detail="Invalid credentials")
+
+@app.get("/api/gallery")
+async def get_gallery():
+    try:
+        gallery_collection = db.gallery
+        images = await gallery_collection.find({}).to_list(100)
+        return images
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/api/gallery")
+async def upload_image(
+    file: UploadFile = File(...),
+    description: str = Form(""),
+    username: str = Depends(verify_token)
+):
+    try:
+        # Read file content
+        file_content = await file.read()
+        
+        # Encode image to base64
+        image_data = base64.b64encode(file_content).decode('utf-8')
+        
+        # Create gallery item
+        gallery_item = {
+            "id": str(uuid.uuid4()),
+            "filename": file.filename,
+            "image_data": image_data,
+            "description": description,
+            "uploaded_at": datetime.utcnow()
+        }
+        
+        # Save to database
+        gallery_collection = db.gallery
+        await gallery_collection.insert_one(gallery_item)
+        
+        return {"message": "Image uploaded successfully", "id": gallery_item["id"]}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.delete("/api/gallery/{image_id}")
+async def delete_image(image_id: str, username: str = Depends(verify_token)):
+    try:
+        gallery_collection = db.gallery
+        result = await gallery_collection.delete_one({"id": image_id})
+        if result.deleted_count == 0:
+            raise HTTPException(status_code=404, detail="Image not found")
+        return {"message": "Image deleted successfully"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/api/chat")
+async def chat_endpoint(chat_data: ChatMessage):
+    # Placeholder for OpenAI integration
+    # Will be implemented after getting API key
+    return {
+        "response": "Hello! I'm your beauty assistant. I can help you with beauty tips and provide information about our salon location at 21-23 Woodgrange Road, London E7 8BA. Our opening hours are Monday-Saturday 11:00 AM to 6:00 PM. How can I help you today?",
+        "session_id": chat_data.session_id or str(uuid.uuid4())
+    }
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=8001)
