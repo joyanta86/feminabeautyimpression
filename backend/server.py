@@ -37,6 +37,9 @@ MONGO_URL = os.environ.get('MONGO_URL', 'mongodb://localhost:27017')
 client = AsyncIOMotorClient(MONGO_URL)
 db = client.beauty_salon
 
+# OpenAI configuration
+openai.api_key = os.environ.get('OPENAI_API_KEY')
+
 # Models
 class GalleryImage(BaseModel):
     id: str
