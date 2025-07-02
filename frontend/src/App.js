@@ -320,23 +320,68 @@ const App = () => {
               ))
             ) : (
               <div className="col-span-full text-center py-12">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div className="relative">
                   <img
-                    src="https://images.pexels.com/photos/3865712/pexels-photo-3865712.jpeg"
-                    alt="Spa Treatment"
-                    className="rounded-lg shadow-lg"
+                    src="https://images.pexels.com/photos/5128078/pexels-photo-5128078.jpeg"
+                    alt="Eyebrow Threading Service"
+                    className="rounded-lg shadow-lg w-full h-48 object-cover"
                   />
-                  <img
-                    src="https://images.pexels.com/photos/7691165/pexels-photo-7691165.jpeg"
-                    alt="Beauty Products"
-                    className="rounded-lg shadow-lg"
-                  />
-                  <img
-                    src="https://images.pexels.com/photos/8015791/pexels-photo-8015791.jpeg"
-                    alt="Spa Products"
-                    className="rounded-lg shadow-lg"
-                  />
+                  <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-4 rounded-b-lg">
+                    <p className="text-white font-semibold">Eyebrow Threading</p>
+                  </div>
                 </div>
+                <div className="relative">
+                  <img
+                    src="https://images.pexels.com/photos/4621787/pexels-photo-4621787.jpeg"
+                    alt="Facial Massage Service"
+                    className="rounded-lg shadow-lg w-full h-48 object-cover"
+                  />
+                  <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-4 rounded-b-lg">
+                    <p className="text-white font-semibold">Facial & Massage</p>
+                  </div>
+                </div>
+                <div className="relative">
+                  <img
+                    src="https://images.pexels.com/photos/7561210/pexels-photo-7561210.jpeg"
+                    alt="Manicure Service"
+                    className="rounded-lg shadow-lg w-full h-48 object-cover"
+                  />
+                  <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-4 rounded-b-lg">
+                    <p className="text-white font-semibold">Manicure & Pedicure</p>
+                  </div>
+                </div>
+                <div className="relative">
+                  <img
+                    src="https://images.pexels.com/photos/8751788/pexels-photo-8751788.jpeg"
+                    alt="Beauty Tools"
+                    className="rounded-lg shadow-lg w-full h-48 object-cover"
+                  />
+                  <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-4 rounded-b-lg">
+                    <p className="text-white font-semibold">Professional Tools</p>
+                  </div>
+                </div>
+                <div className="relative">
+                  <img
+                    src="https://images.pexels.com/photos/4621783/pexels-photo-4621783.jpeg"
+                    alt="Spa Treatment"
+                    className="rounded-lg shadow-lg w-full h-48 object-cover"
+                  />
+                  <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-4 rounded-b-lg">
+                    <p className="text-white font-semibold">Spa Treatments</p>
+                  </div>
+                </div>
+                <div className="relative">
+                  <img
+                    src="https://images.unsplash.com/photo-1630843599725-32ead7671867?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NDk1NzZ8MHwxfHNlYXJjaHwxfHxtYW5pY3VyZXxlbnwwfHx8d2hpdGV8MTc1MTQ0NTI2Mnww&ixlib=rb-4.1.0&q=85"
+                    alt="Nail Art"
+                    className="rounded-lg shadow-lg w-full h-48 object-cover"
+                  />
+                  <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-4 rounded-b-lg">
+                    <p className="text-white font-semibold">Nail Art & Design</p>
+                  </div>
+                </div>
+              </div>
                 <p className="text-gray-500 mt-6">Gallery will be updated with our latest work soon!</p>
               </div>
             )}
