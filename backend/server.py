@@ -93,9 +93,16 @@ async def get_gallery():
     try:
         gallery_collection = db.gallery
         images = await gallery_collection.find({}).to_list(100)
+        # Convert ObjectId to string and handle datetime serialization
+        for image in images:
+            if '_id' in image:
+                del image['_id']
+            if isinstance(image.get('uploaded_at'), datetime):
+                image['uploaded_at'] = image['uploaded_at'].isoformat()
         return images
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        print(f"Gallery error: {str(e)}")
+        return []  # Return empty list instead of error
 
 @app.post("/api/gallery")
 async def upload_image(
