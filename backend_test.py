@@ -202,12 +202,17 @@ if __name__ == "__main__":
     # Add more verbose output for debugging
     import sys
     if len(sys.argv) > 1 and sys.argv[1] == '--debug':
-        # Run specific tests for debugging
-        suite = unittest.TestSuite()
-        test_case = BeautySalonAPITest()
-        test_case.setUp()
-        suite.addTest(BeautySalonAPITest('test_02_admin_login_success'))
-        suite.addTest(BeautySalonAPITest('test_05_upload_image'))
-        unittest.TextTestRunner(verbosity=2).run(suite)
+        # Create a single test instance to maintain state
+        test_instance = BeautySalonAPITest()
+        test_instance.setUp()
+        
+        # Run login test first to get token
+        test_instance.test_02_admin_login_success()
+        
+        # Then run upload test
+        if hasattr(test_instance, 'token') and test_instance.token:
+            test_instance.test_05_upload_image()
+        else:
+            print("❌ Failed to obtain token from login test")
     else:
         unittest.main(argv=['first-arg-is-ignored'], exit=False)
