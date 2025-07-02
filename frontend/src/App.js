@@ -110,9 +110,14 @@ const App = () => {
         const botMessage = { text: data.response, sender: 'bot' };
         setChatMessages(prev => [...prev, botMessage]);
         setSessionId(data.session_id);
+      } else {
+        const errorMessage = { text: 'Sorry, I had trouble processing your message. Please try again.', sender: 'bot' };
+        setChatMessages(prev => [...prev, errorMessage]);
       }
     } catch (error) {
       console.error('Chat error:', error);
+      const errorMessage = { text: 'Sorry, I had trouble connecting. Please try again.', sender: 'bot' };
+      setChatMessages(prev => [...prev, errorMessage]);
     }
 
     setChatInput('');
