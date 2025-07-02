@@ -173,25 +173,34 @@ Instagram: https://www.instagram.com/feminabeautyimpression1
 
 Provide helpful beauty tips, answer questions about our services, help with appointment booking, and give location information. Be friendly, professional, and knowledgeable about beauty and skincare."""
 
-        # Get OpenAI response
-        if openai.api_key:
-            from openai import OpenAI
-            client_openai = OpenAI(api_key=openai.api_key)
-            
-            response = client_openai.chat.completions.create(
-                model="gpt-3.5-turbo",
-                messages=[
-                    {"role": "system", "content": system_prompt},
-                    {"role": "user", "content": chat_data.message}
-                ],
-                max_tokens=300,
-                temperature=0.7
-            )
-            
-            ai_response = response.choices[0].message.content
+        # Get OpenAI API key
+        openai_api_key = os.environ.get('OPENAI_API_KEY')
+        
+        if openai_api_key:
+            try:
+                from openai import OpenAI
+                client_openai = OpenAI(api_key=openai_api_key)
+                
+                response = client_openai.chat.completions.create(
+                    model="gpt-3.5-turbo",
+                    messages=[
+                        {"role": "system", "content": system_prompt},
+                        {"role": "user", "content": chat_data.message}
+                    ],
+                    max_tokens=300,
+                    temperature=0.7
+                )
+                
+                ai_response = response.choices[0].message.content
+                print(f"OpenAI response successful: {ai_response[:50]}...")
+                
+            except Exception as openai_error:
+                print(f"OpenAI API error: {str(openai_error)}")
+                # Fallback to intelligent responses based on keywords
+                ai_response = get_fallback_response(chat_data.message)
         else:
-            # Fallback response if no API key
-            ai_response = "Hello! I'm your beauty assistant. I can help you with beauty tips and provide information about our salon location at 21-23 Woodgrange Road, London E7 8BA. Our opening hours are Monday-Saturday 11:00 AM to 6:00 PM. How can I help you today?"
+            print("No OpenAI API key found, using fallback")
+            ai_response = get_fallback_response(chat_data.message)
         
         return {
             "response": ai_response,
@@ -199,13 +208,50 @@ Provide helpful beauty tips, answer questions about our services, help with appo
         }
     except Exception as e:
         print(f"Chat error: {str(e)}")
-        # Fallback response on error
+        # Final fallback response
         fallback_response = "Hello! I'm here to help with beauty tips and salon information. Our salon is located at 21-23 Woodgrange Road, London E7 8BA. We're open Monday-Saturday 11:00 AM to 6:00 PM. Call us at +44 7368 594210 to book an appointment!"
         
         return {
             "response": fallback_response,
             "session_id": chat_data.session_id or str(uuid.uuid4())
         }
+
+def get_fallback_response(message: str):
+    """Provide intelligent fallback responses based on keywords"""
+    message_lower = message.lower()
+    
+    if any(word in message_lower for word in ['hour', 'time', 'open', 'close']):
+        return "Our opening hours are Monday to Saturday, 11:00 AM to 6:00 PM. We also offer appointments from 10:00-11:00 AM and 6:00-7:00 PM by special arrangement. Call us at +44 7368 594210 to book!"
+    
+    elif any(word in message_lower for word in ['threading', 'eyebrow', 'thread']):
+        return "We offer comprehensive threading services: Eye Brow (£5), Upper Lip (£3), Chin (£3), Forehead (£3), Neck (£3), Side Face (£5), and Full Face (£15). Our experienced technicians ensure precise and comfortable threading!"
+    
+    elif any(word in message_lower for word in ['wax', 'waxing']):
+        return "We provide both face and body waxing services. Face waxing: Full Face (£18), individual areas from £4-£6. Body waxing: Full Leg (£25), Half Leg (£15), Full Arm (£18), Under Arm (£8), Full Body except bikini (£60)."
+    
+    elif any(word in message_lower for word in ['manicure', 'pedicure', 'nail']):
+        return "Our nail services include professional Manicure (£20) and Pedicure (£25). We use high-quality products and techniques to keep your nails healthy and beautiful!"
+    
+    elif any(word in message_lower for word in ['facial', 'massage', 'spa']):
+        return "We offer various facial treatments: Mini Facial (£15), Full Facial with cleansing/whitening/gold options (£25), Herbal Facial (£30), and Head Massage with or without herbal oil (£15). Perfect for relaxation and skin care!"
+    
+    elif any(word in message_lower for word in ['makeup', 'bridal', 'party']):
+        return "Our makeup services include Party Makeup (from £30) and Bridal Makeup (from £150). We create stunning looks for your special occasions using professional techniques and premium products!"
+    
+    elif any(word in message_lower for word in ['henna', 'hair', 'cut']):
+        return "We offer henna artistry and hair services: One Hand/Foot Henna (from £5), Both Hands/Feet (from £10), Hair Trimming (£7), Other cuts (from £12), and special rates for children under 10 (£10)."
+    
+    elif any(word in message_lower for word in ['location', 'address', 'where', 'find']):
+        return "We're located at 21-23 Woodgrange Road, London E7 8BA (Inside Post Office). Easy to find and accessible by public transport. Call +44 7368 594210 for directions or to book an appointment!"
+    
+    elif any(word in message_lower for word in ['price', 'cost', 'how much']):
+        return "Our prices range from £3 for individual threading services to £150 for bridal makeup. We offer competitive pricing for all beauty services. Would you like to know about specific treatments?"
+    
+    elif any(word in message_lower for word in ['book', 'appointment', 'schedule']):
+        return "To book an appointment, please call us at +44 7368 594210. We're open Monday-Saturday 11:00 AM to 6:00 PM, with special appointment slots available 10:00-11:00 AM and 6:00-7:00 PM."
+    
+    else:
+        return "Hello! I'm your beauty assistant at Femina Beauty Impression. I can help you with information about our services including threading, waxing, facials, manicure/pedicure, makeup, and henna. We're located at 21-23 Woodgrange Road, London E7 8BA. How can I help you today?"
 
 if __name__ == "__main__":
     import uvicorn
