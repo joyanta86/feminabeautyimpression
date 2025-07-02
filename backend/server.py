@@ -175,7 +175,10 @@ Provide helpful beauty tips, answer questions about our services, help with appo
 
         # Get OpenAI response
         if openai.api_key:
-            response = openai.ChatCompletion.create(
+            from openai import OpenAI
+            client_openai = OpenAI(api_key=openai.api_key)
+            
+            response = client_openai.chat.completions.create(
                 model="gpt-3.5-turbo",
                 messages=[
                     {"role": "system", "content": system_prompt},
