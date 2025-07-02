@@ -259,8 +259,8 @@ const App = () => {
             </div>
             <div className="relative">
               <img
-                src="https://images.pexels.com/photos/2698552/pexels-photo-2698552.jpeg"
-                alt="Beauty Salon"
+                src="https://images.pexels.com/photos/4621787/pexels-photo-4621787.jpeg"
+                alt="Beauty Salon Professional Service"
                 className="rounded-lg shadow-2xl"
               />
             </div>
